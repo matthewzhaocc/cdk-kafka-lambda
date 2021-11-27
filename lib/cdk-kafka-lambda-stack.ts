@@ -16,10 +16,19 @@ export class CdkKafkaLambdaStack extends cdk.Stack {
       vpc,
       clusterName: 'kafka-cluster',
     })
+    const lambdaSecGroup = new ec2.SecurityGroup(this, 'lambda-security-group', {
+      vpc,
+      securityGroupName: 'lambdaSecGroup'
+    })
+    lambdaSecGroup.addEgressRule(ec2.Peer.anyIpv4(), ec2.Port.allTcp())
+    lambdaSecGroup.addEgressRule(ec2.Peer.anyIpv6(), ec2.Port.allTcp())
+    cluster.connections.allowFrom(lambdaSecGroup.connections, ec2.Port.allTcp())
     const fx = new lambda.Function(this, 'processing-lambda', {
       handler: 'index.handler',
       runtime: lambda.Runtime.NODEJS_14_X,
-      code: lambda.Code.fromAsset(join(__dirname, 'lambda-handler'))
+      code: lambda.Code.fromAsset(join(__dirname, '../lambda-handler')),
+      vpc,
+      securityGroups: [lambdaSecGroup]
     })
     fx.addEventSource(new lambdaSources.ManagedKafkaEventSource({
       clusterArn: cluster.clusterArn,
