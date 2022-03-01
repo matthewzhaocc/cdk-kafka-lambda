@@ -3,6 +3,7 @@ import * as msk from '@aws-cdk/aws-msk'
 import * as ec2 from '@aws-cdk/aws-ec2'
 import * as lambda from '@aws-cdk/aws-lambda'
 import * as lambdaSources from '@aws-cdk/aws-lambda-event-sources'
+import * as iam from '@aws-cdk/aws-iam'
 import { join } from 'path';
 
 export class CdkKafkaLambdaStack extends cdk.Stack {
@@ -28,7 +29,7 @@ export class CdkKafkaLambdaStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_14_X,
       code: lambda.Code.fromAsset(join(__dirname, '../lambda-handler')),
       vpc,
-      securityGroups: [lambdaSecGroup]
+      securityGroups: [lambdaSecGroup],
     })
     fx.addEventSource(new lambdaSources.ManagedKafkaEventSource({
       clusterArn: cluster.clusterArn,
